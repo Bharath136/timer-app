@@ -17,4 +17,5 @@ git clone https://github.com/Bharath136/timer-app.git
 cd timer-app
 
 npm install
+
 npm start
