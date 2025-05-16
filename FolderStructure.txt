@@ -1,0 +1,58 @@
+RevisitApp/
+├── assets/
+│   ├── images/               # Store images and logos
+│   │   ├── logo.png
+│   │   ├── banner.png
+│   │   └── icons/
+│   │       ├── facebook.png
+│   │       ├── twitter.png
+│   │       └── instagram.png
+│   ├── fonts/                # Custom fonts
+│   │   └── Poppins-Regular.ttf
+│   └── videos/               # Video files (if any)
+│       └── intro.mp4
+├── components/               # Reusable components
+│   ├── Navbar.js
+│   ├── Footer.js
+│   ├── Button.js
+│   ├── Card.js
+│   └── Modal.js
+├── contexts/                 # Context providers
+│   ├── AuthContext.js
+│   └── ThemeContext.js
+├── hooks/                    # Custom hooks
+│   ├── useAuth.js
+│   ├── useTheme.js
+│   └── useFetch.js
+├── navigation/               # Navigation configurations
+│   ├── AppNavigator.js
+│   ├── AuthNavigator.js
+│   └── BottomTabNavigator.js
+|   └── HomeNavigator.js
+├── screens/                  # App screens
+│   ├── HomeScreen.js
+│   ├── ShopScreen.js
+│   ├── CustomizationScreen.js
+│   ├── ContactUsScreen.js
+│   ├── FaqScreen.js
+│   ├── PrivacyPolicyScreen.js
+│   ├── ShippingInfoScreen.js
+│   └── TermsOfUseScreen.js
+├── services/                 # API and utility services
+│   ├── api.js                # API service configuration
+│   ├── authService.js
+│   └── productService.js
+├── styles/                   # Shared styles
+│   ├── colors.js             # App-wide color palette
+│   ├── typography.js         # Font sizes, weights, etc.
+│   └── globalStyles.js       # General reusable styles
+├── utils/                    # Utility functions
+│   ├── validators.js         # Input validators
+│   ├── formatters.js         # Formatting utilities
+│   └── constants.js          # App-wide constants
+├── App.js                    # Entry point for the app
+├── app.json                  # Expo configuration
+├── babel.config.js           # Babel configuration
+├── package.json              # Project dependencies and scripts
+├── README.md                 # Project documentation
+└── metro.config.js           # Metro bundler configuration
