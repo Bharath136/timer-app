@@ -8,22 +8,18 @@ class ErrorBoundary extends React.Component {
         this.state = { hasError: false, error: null, errorInfo: null };
     }
 
-    // Update state when an error is caught
     static getDerivedStateFromError(error) {
         return { hasError: true, error };
     }
 
-    // Log error details and additional information
     componentDidCatch(error, errorInfo) {
         console.error('ErrorBoundary caught an error:', error, errorInfo);
 
-        // Integrate error tracking services if needed
         if (this.props.logError) {
             this.props.logError({ error, errorInfo });
         }
     }
 
-    // Reset the error state to allow recovery
     handleRetry = () => {
         this.setState({ hasError: false, error: null, errorInfo: null });
     };

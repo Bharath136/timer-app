@@ -6,9 +6,9 @@ export default function App() {
 
   return (
 
-    <TimerProvider>
+    // <TimerProvider>
       <AppNavigator />
-    </TimerProvider>
+    // </TimerProvider>
 
   );
 }

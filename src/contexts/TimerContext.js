@@ -57,7 +57,7 @@ export const TimerProvider = ({ children }) => {
            setCategory(categories[0]);
        };
 
-    const startTimer = (id, resume = false) => {
+    const startTimer = (id) => {
         if (intervals.current[id]) return;
 
         intervals.current[id] = setInterval(() => {
@@ -89,6 +89,7 @@ export const TimerProvider = ({ children }) => {
         updateTimerStatus(id, 'running');
     };
 
+
     const updateTimerStatus = (id, status) => {
         setTimers((prev) => {
             const updated = prev.map(timer => timer.id === id ? { ...timer, status } : timer);
@@ -115,12 +116,12 @@ export const TimerProvider = ({ children }) => {
         await saveTimers(updatedTimers);
     };
 
-    const resetTimers = async () => {
-        Object.values(intervals.current).forEach(clearInterval);
-        intervals.current = {};
-        setTimers([]);
-        await AsyncStorage.removeItem('timers');
-    };
+    // const resetTimers = async () => {
+    //     Object.values(intervals.current).forEach(clearInterval);
+    //     intervals.current = {};
+    //     setTimers([]);
+    //     await AsyncStorage.removeItem('timers');
+    // };
 
     const resetTimer = (id) => {
         if (intervals.current[id]) {

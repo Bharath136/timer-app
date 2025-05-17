@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+
 import {
     View,
     Text,
@@ -12,7 +14,6 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ProgressBar } from 'react-native-paper';
-import { useTimerContext } from '../contexts/TimerContext';
 
 const categories = ['Study', 'Workout', 'Break', 'Game'];
 
@@ -26,7 +27,6 @@ const HomeScreen = () => {
     const [expandedCategories, setExpandedCategories] = useState({});
     const intervals = useRef({});
 
-  
 
     useEffect(() => {
         loadTimers();
@@ -113,12 +113,14 @@ const HomeScreen = () => {
         }
         setTimers((prev) => {
             const updated = prev.map(timer =>
-                timer.id === id ? { ...timer, remaining: timer.duration, status: 'paused' } : timer
+                timer.id === id ? { ...timer, remaining: timer.duration, status: 'stopped' } : timer
             );
             saveTimers(updated);
             return updated;
         });
     };
+
+
 
     const updateTimerStatus = (id, status) => {
         setTimers((prev) => {
@@ -149,6 +151,44 @@ const HomeScreen = () => {
     const pauseAllTimersInCategory = (category) => {
         const timersToPause = groupedTimers[category].filter(t => t.status === 'running');
         timersToPause.forEach(t => pauseTimer(t.id));
+    };
+
+    const resetAllTimersInCategory = (category) => {
+        Object.keys(intervals.current).forEach((id) => {
+            const timer = timers.find(t => t.id === id && t.category === category);
+            if (timer) {
+                clearInterval(intervals.current[id]);
+                delete intervals.current[id];
+            }
+        });
+
+        setTimers((prevTimers) => {
+            const updated = prevTimers.map((timer) => {
+                if (timer.category === category) {
+                    return {
+                        ...timer,
+                        remaining: timer.duration,
+                        status: 'stopped',
+                        halfwayAlertShown: false,
+                    };
+                }
+                return timer;
+            });
+
+            saveTimers(updated);
+            return updated;
+        });
+    };
+
+
+    const deleteAllTimersInCategory = async (category) => {
+        const updatedTimers = timers.filter(timer => timer.category !== category);
+        await saveTimers(updatedTimers);
+        setTimers(updatedTimers);
+    }
+
+    const isAnyRunningInCategory = (category) => {
+        return timers.some(timer => timer.category === category && timer.status === 'running');
     };
 
     return (
@@ -183,14 +223,37 @@ const HomeScreen = () => {
                     <View key={cat} style={styles.categoryGroup}>
                         <TouchableOpacity onPress={() => toggleCategory(cat)} style={styles.categoryHeader}>
                             <Text style={styles.categoryTitle}>{isExpanded ? '▼' : '▶'} {cat}</Text>
+
+
                             <View style={styles.bulkButtons}>
-                                <TouchableOpacity onPress={() => startAllTimersInCategory(cat)} style={styles.smallButton}>
-                                    <Text style={styles.buttonText}>Start All</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => pauseAllTimersInCategory(cat)} style={styles.smallButton}>
-                                    <Text style={styles.buttonText}>Pause All</Text>
+                                {isAnyRunningInCategory(cat) ? (
+                                    <TouchableOpacity
+                                        onPress={() => pauseAllTimersInCategory(cat)}
+                                        style={[styles.smallButton, styles.iconButton, { backgroundColor: '#ff9800' }]}
+                                    >
+                                        <Icon name="pause-circle-outline" size={24} color="#fff" />
+                                    </TouchableOpacity>
+                                ) : (
+                                    <TouchableOpacity
+                                        onPress={() => startAllTimersInCategory(cat)}
+                                        style={[styles.smallButton, styles.iconButton, { backgroundColor: '#4caf50' }]}
+                                    >
+                                        <Icon name="play-circle-outline" size={24} color="#fff" />
+                                    </TouchableOpacity>
+                                )}
+
+                                <TouchableOpacity
+                                    onPress={() => resetAllTimersInCategory(cat)}
+                                    style={[styles.smallButton, styles.iconButton, { backgroundColor: '#d32f2f' }]}
+                                >
+                                    <Icon name="restart-alt" size={24} color="#fff" />
                                 </TouchableOpacity>
                             </View>
+                            <TouchableOpacity onPress={() => deleteAllTimersInCategory(cat)} style={[styles.smallButton, { backgroundColor: '#d32f2f' }]}>
+                                <Icon name="delete" size={24} color="#fff" />
+                            </TouchableOpacity>
+
+
                         </TouchableOpacity>
                         {isExpanded && timers.map(timer => (
                             <View key={timer.id} style={styles.timerCard}>
@@ -198,16 +261,39 @@ const HomeScreen = () => {
                                 <Text>Status: {timer.status}</Text>
                                 <Text>Remaining: {timer.remaining}s</Text>
                                 <ProgressBar progress={timer.remaining / timer.duration} color={'#4caf50'} style={styles.progress} />
+
                                 <View style={styles.buttonRow}>
-                                    <TouchableOpacity onPress={() => startTimer(timer.id)} disabled={timer.status === 'running' || timer.status === 'completed'} style={styles.smallButton}>
-                                        <Text style={styles.buttonText}>Start</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => pauseTimer(timer.id)} disabled={timer.status !== 'running'} style={styles.smallButton}>
-                                        <Text style={styles.buttonText}>Pause</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => resetTimer(timer.id)} style={styles.smallButton}>
-                                        <Text style={styles.buttonText}>Reset</Text>
-                                    </TouchableOpacity>
+                                    <View style={styles.bulkButtons}>
+                                        {timer.status === 'running' ? (
+                                            <TouchableOpacity
+                                                onPress={() => pauseTimer(timer.id)}
+                                                style={[styles.smallButton, { backgroundColor: '#ff9800' }]}
+                                            >
+                                                <Icon name="pause-circle-outline" size={24} color="#fff" />
+                                            </TouchableOpacity>
+                                        ) : (
+                                            <TouchableOpacity
+                                                onPress={() => startTimer(timer.id)}
+                                                disabled={timer.status === 'completed'}
+                                                style={[
+                                                    styles.smallButton,
+                                                    {
+                                                        backgroundColor: '#4caf50',
+                                                        opacity: timer.status === 'completed' ? 0.6 : 1,
+                                                    },
+                                                ]}
+                                            >
+                                                <Icon name="play-circle-outline" size={24} color="#fff" />
+                                            </TouchableOpacity>
+                                        )}
+
+                                        <TouchableOpacity
+                                            onPress={() => resetTimer(timer.id)}
+                                            style={[styles.smallButton, { backgroundColor: '#2196f3' }]}
+                                        >
+                                            <Icon name="restart-alt" size={24} color="#fff" />
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
                             </View>
                         ))}
@@ -230,8 +316,8 @@ const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 20, backgroundColor: '#f2f2f7' },
-    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 15, color: '#6200ee' },
+    container: { flex: 1, paddingBottom: 40, paddingHorizontal: 20, backgroundColor: '#f2f2f7' },
+    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#6200ee' },
     sectionLabel: { marginTop: 10, fontWeight: 'bold', color: '#333' },
     input: {
         borderWidth: 1,
@@ -258,16 +344,16 @@ const styles = StyleSheet.create({
     primaryButton: {
         backgroundColor: '#6200ee',
         padding: 12,
-        borderRadius: 10,
+        borderRadius: 50,
         alignItems: 'center',
         marginVertical: 10,
     },
     buttonText: { color: '#fff', fontWeight: 'bold' },
-    categoryGroup: { marginTop: 15, marginBottom: 20, },
+    categoryGroup: { marginTop: 15, },
     categoryHeader: {
         backgroundColor: '#e0e0f8',
         padding: 10,
-        borderRadius: 8,
+        borderRadius: 4,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -275,16 +361,22 @@ const styles = StyleSheet.create({
     categoryTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
     bulkButtons: { flexDirection: 'row', gap: 10 },
     smallButton: {
-        backgroundColor: '#6200ee',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-        marginLeft: 5,
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 4,
+        marginHorizontal: 4,
+        alignItems: 'center',
     },
+    buttonText: {
+        color: '#fff',
+        fontWeight: '600',
+        fontSize: 14,
+    },
+
     timerCard: {
         backgroundColor: '#fff',
         padding: 15,
-        borderRadius: 10,
+        borderRadius: 4,
         marginVertical: 8,
         elevation: 3,
         shadowColor: '#000',
